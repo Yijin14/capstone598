@@ -1,0 +1,144 @@
+============================================================
+PROJECT A: STUDENT SENTIMENT CLASSIFICATION
+============================================================
+
+Experiment E-003
+Date: 2026-02-14
+Owner: Mia
+Goal: Establish a transformer baseline for classifying positive, neutral, and negative student feedback.
+
+The team fine-tuned BERT-base on Student Sentiment Dataset V2 using a learning rate of 2e-5, batch size 16, three epochs, and random seed 42. It reached 84.2% accuracy and 0.817 macro F1.
+
+However, performance varied by up to 4.8 percentage points across random seeds. Neutral comments were often classified as negative. The team decided to rerun the experiment with five random seeds before comparing it with RoBERTa.
+
+Artifacts:
+- projects/sentiment/E-003/config.yaml
+- projects/sentiment/E-003/metrics.json
+
+
+Meeting Notes - Sentiment Project
+Date: 2026-02-16
+Attendees: Mia, Alex, Jordan
+
+Mia presented the E-003 results. Alex asked whether the improvement over logistic regression justified the additional inference cost.
+
+Jordan remembered that the validation split might contain comments from the same courses as the training split. The team verbally agreed to create course-level data splits and report the mean and standard deviation across five seeds.
+
+Mia agreed to run the new experiment. No deadline was recorded.
+
+
+Experiment E-004
+Date: 2026-02-21
+Owner: Alex
+Goal: Compare RoBERTa-base with the BERT baseline.
+
+The team fine-tuned RoBERTa-base on Student Sentiment Dataset V1 using a learning rate of 1e-5, batch size 16, four epochs, and random seed 42. It reached 88.9% accuracy and 0.861 macro F1.
+
+A later audit found 312 duplicate comments across the training and test splits. The result may therefore contain data leakage.
+
+The team decided to invalidate the reported score and stop using Dataset V1.
+
+Artifacts:
+- projects/sentiment/E-004/train.log
+- projects/sentiment/E-004/predictions.csv
+
+
+Experiment E-005
+Date: 2026-02-28
+Owner: Mia
+Goal: Re-evaluate BERT using leakage-resistant course-level splits.
+
+The team trained BERT-base on Student Sentiment Dataset V2 using course-level splits and random seeds 11, 22, 33, 44, and 55.
+
+It achieved 81.6% mean accuracy with a standard deviation of 0.9 percentage points. Mean macro F1 was 0.784.
+
+Recall for the neutral class remained below 0.65. The team decided to inspect disagreement in the neutral labels before changing the model architecture.
+
+Artifacts:
+- projects/sentiment/E-005/aggregate_metrics.json
+
+
+============================================================
+PROJECT C: MICROSCOPY CELL SEGMENTATION
+============================================================
+
+Experiment E-201
+Date: 2026-03-18
+Owner: Priya
+Goal: Establish a U-Net baseline for fluorescent cell segmentation.
+
+The team trained U-Net on the Cell Images Dataset containing 420 training images. The experiment used Adam optimization, a learning rate of 1e-4, batch size 8, 40 epochs, and random seed 7.
+
+It reached 0.731 mean IoU on the validation set.
+
+Images from microscope B had much lower IoU because their illumination was darker. The team decided to test intensity normalization before collecting more labels.
+
+Artifacts:
+- projects/vision/E-201/config.yaml
+- projects/vision/E-201/checkpoint.pt
+
+
+Meeting Notes - Microscopy Project
+Date: 2026-03-20
+Attendees: Priya, Mia, Dr. Chen
+
+Priya showed the errors from E-201. Dr. Chen recalled that microscope B had been recalibrated in January, but nobody recorded the exact settings.
+
+Mia suggested excluding the older microscope B images. Dr. Chen rejected this idea because those images represented normal deployment conditions.
+
+The group verbally agreed to normalize each image using its 1st and 99th intensity percentiles. Priya agreed to rerun the model, but the meeting ended before anyone decided whether to reuse random seed 7.
+
+
+Experiment E-202
+Date: 2026-03-24
+Owner: Priya
+Goal: Measure the effect of percentile intensity normalization.
+
+The team trained U-Net on the normalized Cell Images Dataset using the same optimizer and learning rate as E-201, batch size 8, 40 epochs, and random seed 7.
+
+It achieved 0.782 mean IoU overall. IoU for microscope B images improved from 0.603 to 0.751.
+
+However, the model frequently merged thin boundaries between touching cells. The team decided to test a boundary-aware loss while retaining percentile normalization.
+
+Artifacts:
+- projects/vision/E-202/config.yaml
+- projects/vision/E-202/metrics.json
+
+
+Experiment E-203
+Date: 2026-03-29
+Owner: Priya
+Goal: Improve separation between touching cells.
+
+The team trained U-Net with a combined Dice and boundary loss on the normalized Cell Images Dataset using random seed 7.
+
+It reported 0.789 mean IoU. However, manual review found fragmented masks for small cells.
+
+The training log did not record the boundary-loss weight. The team decided that E-203 could not be reproduced reliably and should not replace E-202 until the missing weight was recovered or the experiment was repeated.
+
+Artifacts:
+- projects/vision/E-203/train.log
+- projects/vision/E-203/sample_masks.png
+
+
+============================================================
+CROSS-PROJECT LAB MEETING
+============================================================
+
+Meeting Notes - Weekly Lab Meeting
+Date: 2026-04-01
+Attendees: Dr. Chen, Mia, Alex, Jordan, Priya
+
+The lab reviewed active project risks.
+
+Mia reported that neutral-label disagreement remained unresolved in the sentiment project.
+
+Jordan said hybrid retrieval improved relevance but remained too slow for interactive use.
+
+Priya could not reproduce E-203 because the boundary-loss weight was absent from both the configuration file and the meeting notes.
+
+Dr. Chen asked everyone to record the dataset version, random seeds, preprocessing steps, evaluation metrics, and decision rationale for every experiment.
+
+The lab agreed that failed and invalidated experiments must remain searchable because they could prevent future researchers from repeating unsuccessful work.
+
+No one was assigned to enforce the new documentation rule.
