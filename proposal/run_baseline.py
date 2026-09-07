@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Runnable baseline for the Research Experiment Memory Agent.
-
-This baseline intentionally uses simple rules instead of an LLM so it can run
-without API keys. It searches small lab notes for experiment blocks, extracts a
-few common fields, and answers one historical experiment question.
-"""
 
 from __future__ import annotations
 
